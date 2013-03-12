@@ -27,17 +27,26 @@
       this.refresh(function() {
         // append items to el
         view.$el.empty();
-        _.each(this.collection.filter(function(model) {
-          return !_.isFunction(filter) || filter.call(view, model);
-        }), function(model, i) {
-          if (!limit || i < limit) {
-            var li = $(view.template(model.attributes));
-            if (_.isFunction(click)) {
-              li.on('click', function() { click.call(view, model, i); });
+        if (this.collection.length==0) {
+          this.trigger('not-found');
+        } else {
+          _.each(this.collection.filter(function(model) {
+            return !_.isFunction(filter) || filter.call(view, model);
+          }), function(model, i) {
+            if (!limit || i < limit) {
+              var li = $(view.template(model.attributes));
+              if (_.isFunction(click)) {
+                li.on('click', function() {
+                  click.call(view, model, i);
+                }).on('mouseover', function() {
+                  $(this).siblings().removeClass('selected');
+                  $(this).addClass('selected');
+                });
+              }
+              view.$el.append(li);
             }
-            view.$el.append(li);
-          }
-        });
+          });
+        }
         this.$el.show();
         this.trigger('render');
       });
@@ -74,9 +83,9 @@
       this.term = this.$el.val();
 
       // if no filter method passed use standard case-insensitive contains using the input value
-      if (!this.options.filter) {
+      if (this.options.filter===undefined) {
         this.options.filter = function(model) {
-          return options.value.call(model, model).toLowerCase().indexOf(view.$el.val().toLowerCase())!=-1;
+          return view.options.value.call(model, model).toLowerCase().indexOf(view.$el.val().toLowerCase())!=-1;
         };
       }
 
@@ -86,23 +95,24 @@
         this.$el.val(options.value.call(model, model));
         this.term = this.$el.val();
         this.$el.focus();
+        this.trigger('selected', model);
       }, this);
-
-      this.delegateEvents(_.defaults(options.events || {}, {
-        keyup: 'keyup',
-        keydown: 'keydown',
-        blur: 'blur'
-      }));
 
       // create the results element if not passed as an option
       this.results = options.results || $('<div>', { class: 'autocomplete-results' }).css({
         position: 'absolute',
         zIndex: 1,
-        left: this.$el.position().left,
-        top: this.$el.position().top + this.$el.outerHeight(),
+        left: this.$el.offset().left,
+        top: this.$el.offset().top + this.$el.outerHeight(),
         width: this.$el.outerWidth(),
       }).appendTo($('body'));
       this.resultsView = new Backbone.InteractiveList(_.defaults({ el: this.results }, this.options)).on('render', this.next, this);
+    },
+
+    events: {
+      keyup: 'keyup',
+      keydown: 'keydown',
+      blur: 'blur'
     },
 
     $selected: function() {
@@ -164,8 +174,9 @@
       this.scroll();
     },
 
-    blur: function() {
-      this.results.hide();
+    blur: function(e) {
+      var view = this;
+      setTimeout(function() { view.results.hide(); }, 100);
     },
 
     // scroll till selected element is in view
