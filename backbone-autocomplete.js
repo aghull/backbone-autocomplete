@@ -36,7 +36,7 @@
             if (!limit || i < limit) {
               var li = $(view.template(model.attributes));
               if (_.isFunction(click)) {
-                li.on('click', function() {
+                li.on('mousedown', function() {
                   click.call(view, model, i);
                 }).on('mouseover', function() {
                   $(this).siblings().removeClass('selected');
@@ -176,7 +176,7 @@
 
     blur: function(e) {
       var view = this;
-      setTimeout(function() { view.results.hide(); }, 100);
+      view.results.hide();
     },
 
     // scroll till selected element is in view
