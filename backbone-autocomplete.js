@@ -143,7 +143,7 @@
       if (e.keyCode == 13 || e.keyCode == 9) {
         // if an item is selected, act like it was clicked
         if (this.$selected().length > 0) {
-          this.$selected().click();
+          this.$selected().mousedown();
           return false;
         }
       }
