@@ -30,22 +30,24 @@
         if (this.collection.length==0) {
           this.trigger('not-found');
         } else {
+          var lis = document.createDocumentFragment();
           _.each(this.collection.filter(function(model) {
             return !_.isFunction(filter) || filter.call(view, model);
           }), function(model, i) {
             if (!limit || i < limit) {
-              var li = $(view.template(model.attributes));
+              var $li = $(view.template(model.attributes));
               if (_.isFunction(click)) {
-                li.on('mousedown', function() {
+                $li.on('mousedown', function() {
                   click.call(view, model, i);
                 }).on('mouseover', function() {
                   $(this).siblings().removeClass('selected');
                   $(this).addClass('selected');
                 });
               }
-              view.$el.append(li);
+              lis.appendChild($li[0]);
             }
           });
+          view.$el.append(lis);
         }
         this.$el.show();
         this.trigger('render');
