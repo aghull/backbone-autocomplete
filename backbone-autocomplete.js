@@ -101,7 +101,7 @@
       }, this);
 
       // create the results element if not passed as an option
-      this.results = options.results || $('<div>', { class: 'autocomplete-results' }).css({
+      this.results = options.results || $('<div>', { 'class': 'autocomplete-results' }).css({
         position: 'absolute',
         zIndex: 1,
         left: this.$el.offset().left,
