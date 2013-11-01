@@ -12,6 +12,7 @@
    */
   Backbone.InteractiveList = Backbone.View.extend({
     initialize: function(options) {
+      this.options = options;
       this.template = options.template;
       if (!this.collection) {
         this.collection = new Backbone.Collection();
@@ -80,6 +81,7 @@
    */
   Backbone.AutocompleteList = Backbone.View.extend({
     initialize: function(options) {
+      this.options = options;
       var view = this;
       this.timer = null;
       this.term = this.$el.val();
