@@ -14,13 +14,14 @@
     initialize: function(options) {
       this.options = options;
       this.template = options.template;
+      this.timer = null;
       if (!this.collection) {
         this.collection = new Backbone.Collection();
       }
       this.collection.url = options.url;
     },
 
-    render: function() {
+    render: function(allowServer) {
       var view = this,
           click = this.options.click,
           filter = this.options.filter,
@@ -52,20 +53,26 @@
         }
         this.$el.show();
         this.trigger('render');
-      });
+      }, allowServer);
       return this;
     },
 
-    refresh: function(callback) {
+    refresh: function(callback, allowServer) {
       var view = this;
-      if (this.collection.url && (!this.lastUrl || this.lastUrl!=_.result(this.collection.url))) {
-        // fetch collection from server and render it
-        this.collection.fetch({
-          success: function() {
-            view.lastUrl = _.result(view.collection.url);
-            callback.call(view);
-          }
-        });
+      clearTimeout(this.timer);
+
+      if (this.collection.every(function(model) { // no matches in current collection
+        return _.isFunction(this.options.filter) && !this.options.filter.call(view, model);
+      }, this) && (allowServer && this.collection.url && (!this.lastUrl || this.lastUrl!=_.result(this.collection.url)))) { // try server if URL changed
+        this.timer = setTimeout(function() {
+          // fetch collection from server and render it
+          view.collection.fetch({
+            success: function() {
+              view.lastUrl = _.result(view.collection.url);
+              callback.call(view);
+            }
+          });
+        }, this.options.delay);
       } else {
         callback.call(view);
       }
@@ -83,8 +90,8 @@
     initialize: function(options) {
       this.options = options;
       var view = this;
-      this.timer = null;
       this.term = this.$el.val();
+      this.shortList = this.collection ? _.clone(this.collection.models) : [];
 
       // if no filter method passed use standard case-insensitive contains using the input value
       if (this.options.filter===undefined) {
@@ -127,9 +134,9 @@
       var resultsView = this.resultsView;
       if (this.term != this.$el.val()) {
         this.term = this.$el.val();
-        clearTimeout(this.timer);
-        if (!this.options.minLength || this.term.length >= this.options.minLength) {
-          this.timer = setTimeout(function() { resultsView.render(); }, this.options.delay);
+        this.collection.reset(this.shortList);
+        if (this.term.length) {
+          resultsView.render(!this.options.minLength || this.term.length >= this.options.minLength);
         } else {
           this.results.hide();
         }
