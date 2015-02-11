@@ -62,13 +62,13 @@
       clearTimeout(this.timer);
 
       if (this.collection.every(function(model) { // no matches in current collection
-        return _.isFunction(this.options.filter) && !this.options.filter.call(view, model);
-      }, this) && (allowServer && this.collection.url && (!this.lastUrl || this.lastUrl!=_.result(this.collection.url)))) { // try server if URL changed
+        return !_.isFunction(this.options.filter) || !this.options.filter.call(view, model);
+      }, this) && (allowServer && this.collection.url && (!this.lastUrl || this.lastUrl!=_.result(this.collection, 'url')))) { // try server if URL changed
         this.timer = setTimeout(function() {
           // fetch collection from server and render it
           view.collection.fetch({
             success: function() {
-              view.lastUrl = _.result(view.collection.url);
+              view.lastUrl = _.result(view.collection, 'url');
               callback.call(view);
             }
           });
