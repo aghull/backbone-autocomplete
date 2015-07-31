@@ -91,6 +91,10 @@
       this.options = options;
       var view = this;
       this.term = this.$el.val();
+      if (!this.collection) {
+        this.collection = new Backbone.Collection();
+      }
+      this.collection.url = options.url;
       this.shortList = this.collection ? _.clone(this.collection.models) : [];
 
       // if no filter method passed use standard case-insensitive contains using the input value
